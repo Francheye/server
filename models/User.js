@@ -35,6 +35,18 @@ const PersonalInfoSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  brandDetails:{
+    webUrl:String,
+    brandSocials:{
+      facebook:String,
+      instagram:String,
+      twitter:String
+    },
+    mission:String,
+    whatYouDo:String,
+    whatYouSell:String
+  }
 });
 
 // Define User schema
@@ -64,12 +76,24 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 
+  isApproved:{
+    type:Boolean,
+    default:false
+  },
+
   resetPasswordToken: {
     type: String,
   },
   resetPasswordExpires: {
     type: Date,
   },
+  verificationCode:{
+    type:String,
+  },
+  
+  verificationCodeExpires:{
+    type:String
+  }
 });
 
 // Define a method for hashing the password

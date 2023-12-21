@@ -11,18 +11,19 @@ let transporter = nodemailer.createTransport({
 });
 
 //Welcome Email Mailer Function
-const sendWelcomeEmail = (to) => {
+const sendWelcomeEmail = (to, verificationCode) => {
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: to,
-    subject: 'Welcome to Francheye!',
+    subject: '[Confirm your Email] Welcome to Francheye!',
     html: `
         <div style="font-family: Arial, sans-serif; text-align: left; color: #333; margin: 0 auto; max-width: 600px;">
           <a href='https://postimages.org/' target='_blank'>
             <img src='https://i.postimg.cc/9Fns794n/francheye-logo.png' border='0' alt='francheye-logo' style='width: 100%; max-width: 150px; height: auto;'/>
           </a>
           <p>Welcome to <span style="color: blue;">Francheye</span>, before you dive into our platform and start digital franchising, we need you to confirm your email address.</p>
-          <p><a href="YOUR_CONFIRMATION_LINK" style="color: #4A90E2; text-decoration: none;">Click here to confirm your email</a></p>
+          <p style="font-size: 18px; color: #00008B;"><strong>${verificationCode}</strong></p>
+          <p>Enter this code in the provided field on our website. If you did not sign up for a Francheye account, please disregard this email.</p>
           <p>Thanks for joining the <span style="color: blue;">Francheye</span> Family.</p>
           <p>Best,</p>
           <p>The <span style="color: blue;">Francheye</span> Team</p>

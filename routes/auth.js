@@ -14,6 +14,9 @@ router.post('/login', login);
 router.post('/register', registerUser);
 router.patch('/forgotPassword', forgotPassword);
 router.patch('/resetPassword', resetPassword);
+router.post("/verify", verifyEmail);
+router.post("/verify/resend", resendVerificationCode);
+
 // router.get('/banks', getBanks)
 
 // OAuth 2.0 Authentication Routes

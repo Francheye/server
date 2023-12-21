@@ -27,8 +27,7 @@ const registerUser = async (req, res) => {
     const token = user.createJWT();
 
     // Send mail
-    sendWelcomeEmail(email, name);
-
+    
     console.log(user);
 
     // Prepare user data for response, excluding the password
@@ -39,11 +38,16 @@ const registerUser = async (req, res) => {
       type: user.type, // Include 'type' in the response if needed
     };
 
-    // Respond with user information (excluding password) and token
-    res.status(StatusCodes.CREATED).json({
-      user: userData,
-      token,
-    });
+    const verificationCode = generateVerificationCode(); // Implement this function
+    
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + 3600000; // Code expires in 1 hour
+    
+    await user.save();
+    sendWelcomeEmail(email, verificationCode);
+    
+    res.status(201).json({ msg: 'Verification code sent to email.', email: userData.email });
+    
   } catch (error) {
     // Handle different types of errors
     if (error.name === 'ValidationError') {
@@ -59,6 +63,52 @@ const registerUser = async (req, res) => {
     }
   }
 };
+
+//aux function for generating the verification code
+function generateVerificationCode() {
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += Math.floor(Math.random() * 10).toString();
+  }
+  return code;
+}
+
+//Route to verify the user with the code
+const verifyEmail = async (req, res) => {
+  const { email, verificationCode } = req.body;
+  const user = await User.findOne({ 'data.email':email, verificationCode, verificationCodeExpires: { $gt: Date.now() } });
+
+  if (!user) {
+    return res.status(400).json({msg:'Invalid or expired verification code.'});
+  }
+
+  user.isOnboarded = true;
+  user.verificationCode = undefined;
+  user.verificationCodeExpires = undefined;
+  await user.save();
+
+  res.status(200).json({msg:'Account verified successfully.'});
+};
+
+
+//route to send the verification code again incase it expires
+const resendVerificationCode = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({msg:'User not found.'});
+  }
+
+  const newVerificationCode = generateVerificationCode();
+  user.verificationCode = newVerificationCode;
+  user.verificationCodeExpires = Date.now() + 3600000; // 1 hour
+  await user.save();
+
+  sendWelcomeEmail(email, newVerificationCode);
+  res.status(200).json({msg:'New verification code sent.'});
+};
+
 
 const login = async (req, res) => {
   try {
