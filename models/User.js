@@ -41,7 +41,8 @@ const PersonalInfoSchema = new mongoose.Schema({
     brandSocials:{
       facebook:String,
       instagram:String,
-      twitter:String
+      twitter:String,
+      tikTok:String
     },
     mission:String,
     whatYouDo:String,
@@ -63,8 +64,8 @@ const UserSchema = new mongoose.Schema({
 
   tags: {
     region: String,
-    niche: String,
-    partner: String,
+    niche: [String],
+    partner: [String],
     isOnboarded: {
       type: Boolean,
       default: false,
@@ -74,6 +75,11 @@ const UserSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
+  },
+
+  emailVerified:{
+    type:Boolean,
+    default:false
   },
 
   isApproved:{
@@ -92,7 +98,7 @@ const UserSchema = new mongoose.Schema({
   },
   
   verificationCodeExpires:{
-    type:String
+    type:Date
   }
 });
 

@@ -8,6 +8,8 @@ const {
   googleCallback,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerificationCode
 } = require('../controllers/auth');
 
 router.post('/login', login);

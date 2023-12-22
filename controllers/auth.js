@@ -73,28 +73,53 @@ function generateVerificationCode() {
   return code;
 }
 
-//Route to verify the user with the code
+const axios = require('axios'); // Ensure axios is required at the top of your file
+
 const verifyEmail = async (req, res) => {
   const { email, verificationCode } = req.body;
-  const user = await User.findOne({ 'data.email':email, verificationCode, verificationCodeExpires: { $gt: Date.now() } });
+  const user = await User.findOne({ 'data.email': email, verificationCode, verificationCodeExpires: { $gt: Date.now() } });
 
   if (!user) {
-    return res.status(400).json({msg:'Invalid or expired verification code.'});
+    return res.status(400).json({ msg: 'Invalid or expired verification code.' });
   }
 
-  user.isOnboarded = true;
+  user.emailVerified = true;
   user.verificationCode = undefined;
   user.verificationCodeExpires = undefined;
   await user.save();
 
-  res.status(200).json({msg:'Account verified successfully.'});
+  // Add User to SendFox mailing list
+  const apiEndpoint = 'https://api.sendfox.com/contacts';
+  const apiKey = process.env.SEND_FOX; // Replace with your actual API key
+  console.log(apiKey)
+
+  const userData = {
+      email: user.data.email, // Use the user's email
+      first_name: user.data.name, // Use the user's first name
+      lists: [468931] // Replace with your actual list ID
+  };
+
+  try {
+      const response = await axios.post(apiEndpoint, userData, {
+          headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+          }
+      });
+
+      // Handle response here if needed
+      console.log(response.data);
+
+      res.status(200).json({ msg: 'Account verified successfully.' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: 'Error adding user to SendFox.' });
+  }
 };
-
-
 //route to send the verification code again incase it expires
 const resendVerificationCode = async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ 'data.email':email });
 
   if (!user) {
     return res.status(404).json({msg:'User not found.'});
@@ -292,4 +317,6 @@ module.exports = {
   resetPassword,
   initiateOauth,
   googleCallback,
+  verifyEmail,
+  resendVerificationCode
 };
