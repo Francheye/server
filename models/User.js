@@ -99,6 +99,10 @@ const UserSchema = new mongoose.Schema({
   
   verificationCodeExpires:{
     type:Date
+  },
+
+  tikTokAccessToken:{
+    type:String
   }
 });
 

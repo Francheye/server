@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const oauth2Client = require('../oauth2Client');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../mailer');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
+const crypto = require('crypto')
 
 // EMAIL AND PASSWORD REGISTER AND LOGIN
 const registerUser = async (req, res) => {
@@ -310,6 +312,68 @@ const googleCallback = async (req, res) => {
   }
 };
 
+const initiateTikTokOauth = async (req, res) => {
+  const userId = req._id
+  const nonce = generateNonce(); // Generate a random string for security
+  const state = encryptOrEncode(`${userId}:${nonce}`); // Implement encryption/encoding
+
+  const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.TIKTOK_REDIRECT_URI)}&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
+  res.redirect(tikTokAuthUrl);
+}
+
+const tikTokCallback = async (req, res) => {
+  try {
+    const code = req.query.code;
+    const state = req.query.state;
+
+      // Decrypt or decode the state parameter to get the userId
+      const [userId, nonce] = decryptOrDecode(state).split(':'); // Implement decryption/decoding
+
+    const tokenResponse = await axios.post('https://open-api.tiktok.com/oauth/access_token/', {
+      client_key: process.env.TIKTOK_CLIENT_ID,
+      client_secret: process.env.TIKTOK_CLIENT_SECRET,
+      code: code,
+      grant_type: 'authorization_code'
+    });
+
+    const accessToken = tokenResponse.data.data.access_token;
+    // Store accessToken in your database associated with the user
+    updateUser(userId, accessToken)
+
+    res.send('TikTok authentication successful!');
+  } catch (error) {
+    console.error('Error during TikTok callback:', error);
+    res.status(500).send('Authentication failed');
+  }
+}
+
+
+//Aux functions
+;
+
+function generateNonce(length = 32) {
+  return crypto.randomBytes(length).toString('hex');
+}
+
+async function updateUser(userId, accessToken) {
+  try {
+    const result = await User.updateOne(
+      { _id: userId }, // Find user by ID
+      { $set: { accessToken: accessToken } } // Set new values
+    );
+
+    if(result.matchedCount === 0) {
+      console.log('No user found with the given ID.');
+    } else {
+      console.log('User updated successfully.');
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+  }
+}
+
+
+
 module.exports = {
   login,
   registerUser,
@@ -318,5 +382,7 @@ module.exports = {
   initiateOauth,
   googleCallback,
   verifyEmail,
-  resendVerificationCode
+  resendVerificationCode,
+  tikTokCallback,
+  initiateTikTokOauth
 };
