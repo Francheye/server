@@ -373,6 +373,33 @@ async function updateUser(userId, accessToken) {
 }
 
 
+function encryptOrEncode(text) {
+  const iv = crypto.randomBytes(16); // generate a random initialization vector
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
+  
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  return iv.toString('hex') + ':' + encrypted;
+}
+
+function decryptOrDecode(encryptedText) {
+  try {
+    const textParts = encryptedText.split(':');
+    const iv = Buffer.from(textParts.shift(), 'hex'); // Extract the IV from the encrypted text
+    const encrypted = textParts.join(':');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
+
+    let decrypted = decipher.update(Buffer.from(encrypted, 'hex'));
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    throw new Error('Failed to decrypt data');
+  }
+}
+
 
 module.exports = {
   login,
