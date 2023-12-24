@@ -314,8 +314,8 @@ const googleCallback = async (req, res) => {
 
 const initiateTikTokOauth = async (req, res) => {
   const userId = req._id
-  const nonce = generateNonce(); // Generate a random string for security
-  const state = encryptOrEncode(`${userId}:${nonce}`); // Implement encryption/encoding
+//const nonce = generateNonce(); // Generate a random string for security
+  const state = userId; // Implement encryption/encoding
 
   const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.TIKTOK_REDIRECT_URI)}&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
   res.redirect(tikTokAuthUrl);
@@ -324,10 +324,10 @@ const initiateTikTokOauth = async (req, res) => {
 const tikTokCallback = async (req, res) => {
   try {
     const code = req.query.code;
-    const state = req.query.state;
+    const userId = req.query.state;
 
       // Decrypt or decode the state parameter to get the userId
-      const [userId, nonce] = decryptOrDecode(state).split(':'); // Implement decryption/decoding
+      //const [userId, nonce] = decryptOrDecode(state).split(':'); // Implement decryption/decoding
 
     const tokenResponse = await axios.post('https://open-api.tiktok.com/oauth/access_token/', {
       client_key: process.env.TIKTOK_CLIENT_ID,
@@ -351,54 +351,54 @@ const tikTokCallback = async (req, res) => {
 //Aux functions
 ;
 
-function generateNonce(length = 32) {
-  return crypto.randomBytes(length).toString('hex');
-}
+// function generateNonce(length = 32) {
+//   return crypto.randomBytes(length).toString('hex');
+// }
 
-async function updateUser(userId, accessToken) {
-  try {
-    const result = await User.updateOne(
-      { _id: userId }, // Find user by ID
-      { $set: { accessToken: accessToken } } // Set new values
-    );
+// async function updateUser(userId, accessToken) {
+//   try {
+//     const result = await User.updateOne(
+//       { _id: userId }, // Find user by ID
+//       { $set: { accessToken: accessToken } } // Set new values
+//     );
 
-    if(result.matchedCount === 0) {
-      console.log('No user found with the given ID.');
-    } else {
-      console.log('User updated successfully.');
-    }
-  } catch (error) {
-    console.error('Error updating user:', error);
-  }
-}
+//     if(result.matchedCount === 0) {
+//       console.log('No user found with the given ID.');
+//     } else {
+//       console.log('User updated successfully.');
+//     }
+//   } catch (error) {
+//     console.error('Error updating user:', error);
+//   }
+// }
 
 
-function encryptOrEncode(text) {
-  const iv = crypto.randomBytes(16); // generate a random initialization vector
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
+// function encryptOrEncode(text) {
+//   const iv = crypto.randomBytes(16); // generate a random initialization vector
+//   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
   
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+//   let encrypted = cipher.update(text, 'utf8', 'hex');
+//   encrypted += cipher.final('hex');
 
-  return iv.toString('hex') + ':' + encrypted;
-}
+//   return iv.toString('hex') + ':' + encrypted;
+// }
 
-function decryptOrDecode(encryptedText) {
-  try {
-    const textParts = encryptedText.split(':');
-    const iv = Buffer.from(textParts.shift(), 'hex'); // Extract the IV from the encrypted text
-    const encrypted = textParts.join(':');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
+// function decryptOrDecode(encryptedText) {
+//   try {
+//     const textParts = encryptedText.split(':');
+//     const iv = Buffer.from(textParts.shift(), 'hex'); // Extract the IV from the encrypted text
+//     const encrypted = textParts.join(':');
+//     const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(process.env.JWT_SECRET, 'hex'), iv);
 
-    let decrypted = decipher.update(Buffer.from(encrypted, 'hex'));
-    decrypted += decipher.final('utf8');
+//     let decrypted = decipher.update(Buffer.from(encrypted, 'hex'));
+//     decrypted += decipher.final('utf8');
 
-    return decrypted;
-  } catch (error) {
-    console.error('Decryption failed:', error);
-    throw new Error('Failed to decrypt data');
-  }
-}
+//     return decrypted;
+//   } catch (error) {
+//     console.error('Decryption failed:', error);
+//     throw new Error('Failed to decrypt data');
+//   }
+// }
 
 
 module.exports = {
