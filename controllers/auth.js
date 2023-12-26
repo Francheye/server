@@ -113,10 +113,10 @@ const verifyEmail = async (req, res) => {
   //     console.log(response.data);
 
       res.status(200).json({ msg: 'Account verified successfully.', user: user });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ msg: 'Error adding user to SendFox.' });
-  }
+  // } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json({ msg: 'Error adding user to SendFox.' });
+  // }
 };
 //route to send the verification code again incase it expires
 const resendVerificationCode = async (req, res) => {
