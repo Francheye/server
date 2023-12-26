@@ -91,26 +91,26 @@ const verifyEmail = async (req, res) => {
   await user.save();
 
   // Add User to SendFox mailing list
-  const apiEndpoint = 'https://api.sendfox.com/contacts';
-  const apiKey = process.env.SEND_FOX; // Replace with your actual API key
-  console.log(apiKey)
+  // const apiEndpoint = 'https://api.sendfox.com/contacts';
+  // const apiKey = process.env.SEND_FOX; // Replace with your actual API key
+  // console.log(apiKey)
 
-  const userData = {
-      email: user.data.email, // Use the user's email
-      first_name: user.data.name, // Use the user's first name
-      lists: [468931] // Replace with your actual list ID
-  };
+  // const userData = {
+  //     email: user.data.email, // Use the user's email
+  //     first_name: user.data.name, // Use the user's first name
+  //     lists: [468931] // Replace with your actual list ID
+  // };
 
-  try {
-      const response = await axios.post(apiEndpoint, userData, {
-          headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-          }
-      });
+  // try {
+  //     const response = await axios.post(apiEndpoint, userData, {
+  //         headers: {
+  //             'Authorization': `Bearer ${apiKey}`,
+  //             'Content-Type': 'application/json'
+  //         }
+  //     });
 
-      // Handle response here if needed
-      console.log(response.data);
+  //     // Handle response here if needed
+  //     console.log(response.data);
 
       res.status(200).json({ msg: 'Account verified successfully.', user: user });
   } catch (error) {
