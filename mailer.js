@@ -11,7 +11,7 @@ let transporter = nodemailer.createTransport({
 });
 
 //Welcome Email Mailer Function
-const sendWelcomeEmail = (to, verificationCode) => {
+const sendWelcomeEmail = async (to, verificationCode) => {
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: to,
@@ -42,7 +42,7 @@ const sendWelcomeEmail = (to, verificationCode) => {
   });
 };
 
-const sendPasswordResetEmail = (to, resetCode) => {
+const sendPasswordResetEmail = async (to, resetCode) => {
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: to,

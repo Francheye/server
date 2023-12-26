@@ -45,7 +45,7 @@ const registerUser = async (req, res) => {
     user.verificationCode = verificationCode;
     user.verificationCodeExpires = Date.now() + 3600000; // Code expires in 1 hour
     
-    await user.save();
+   await user.save();
    await sendWelcomeEmail(email, verificationCode);
     
     res.status(201).json({ msg: 'Verification code sent to email.', email: userData.email });
@@ -201,7 +201,7 @@ const forgotPassword = async (req, res) => {
       throw new Error('Forgot Password Failed.');
     }
 
-    sendPasswordResetEmail(user.data.email, resetCode);
+    await (user.data.email, resetCode);
 
     res.status(200).json({
       msg: 'Password reset code sent to your email',
