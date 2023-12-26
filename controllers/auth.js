@@ -46,7 +46,7 @@ const registerUser = async (req, res) => {
     user.verificationCodeExpires = Date.now() + 3600000; // Code expires in 1 hour
     
     await user.save();
-    sendWelcomeEmail(email, verificationCode);
+   await sendWelcomeEmail(email, verificationCode);
     
     res.status(201).json({ msg: 'Verification code sent to email.', email: userData.email });
     
@@ -132,7 +132,7 @@ const resendVerificationCode = async (req, res) => {
   user.verificationCodeExpires = Date.now() + 3600000; // 1 hour
   await user.save();
 
-  sendWelcomeEmail(email, newVerificationCode);
+ await sendWelcomeEmail(email, newVerificationCode);
   res.status(200).json({msg:'New verification code sent.'});
 };
 
