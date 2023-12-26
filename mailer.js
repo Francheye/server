@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
+
 
 // Create a transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
@@ -33,14 +35,20 @@ const sendWelcomeEmail = async (to, verificationCode) => {
         </div>`
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        reject(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+        resolve(info.response);
+      }
+    });
   });
-};
+
+}
+
 
 const sendPasswordResetEmail = async (to, resetCode) => {
   const mailOptions = {
@@ -60,16 +68,19 @@ const sendPasswordResetEmail = async (to, resetCode) => {
         </div>`,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        reject(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+        resolve(info.response);
+      }
+    });
   });
-};
 
-
+}
 
 module.exports = {
   sendPasswordResetEmail,

@@ -2,12 +2,11 @@ const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const oauth2Client = require('../oauth2Client');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../mailer');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const crypto = require('crypto')
+//const crypto = require('crypto')
 
 // EMAIL AND PASSWORD REGISTER AND LOGIN
 const registerUser = async (req, res) => {
@@ -201,7 +200,7 @@ const forgotPassword = async (req, res) => {
       throw new Error('Forgot Password Failed.');
     }
 
-    await (user.data.email, resetCode);
+    await sendPasswordResetEmail(user.data.email, resetCode);
 
     res.status(200).json({
       msg: 'Password reset code sent to your email',
