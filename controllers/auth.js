@@ -27,10 +27,6 @@ const registerUser = async (req, res) => {
     // Generate and send a JWT token for authentication
     const token = user.createJWT();
 
-    // Send mail
-    
-    console.log(user);
-
     // Prepare user data for response, excluding the password
     const userData = {
       _id: user._id,
@@ -90,32 +86,29 @@ const verifyEmail = async (req, res) => {
   await user.save();
 
   // Add User to SendFox mailing list
-  // const apiEndpoint = 'https://api.sendfox.com/contacts';
-  // const apiKey = process.env.SEND_FOX; // Replace with your actual API key
-  // console.log(apiKey)
+  const apiEndpoint = 'https://api.sendfox.com/contacts';
+  const apiKey = process.env.SEND_FOX; // Replace with your actual API key
+  console.log(apiKey)
 
-  // const userData = {
-  //     email: user.data.email, // Use the user's email
-  //     first_name: user.data.name, // Use the user's first name
-  //     lists: [468931] // Replace with your actual list ID
-  // };
+  const userData = {
+      email: user.data.email, // Use the user's email
+      first_name: user.data.name, // Use the user's first name
+      lists: [468931] // Replace with your actual list ID
+  };
 
-  // try {
-  //     const response = await axios.post(apiEndpoint, userData, {
-  //         headers: {
-  //             'Authorization': `Bearer ${apiKey}`,
-  //             'Content-Type': 'application/json'
-  //         }
-  //     });
-
-  //     // Handle response here if needed
-  //     console.log(response.data);
+  try {
+      const response = await axios.post(apiEndpoint, userData, {
+          headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+          }
+      });
 
       res.status(200).json({ msg: 'Account verified successfully.', user: user });
-  // } catch (error) {
-  //     console.error(error);
-  //     res.status(500).json({ msg: 'Error adding user to SendFox.' });
-  // }
+  } catch (error) {
+  }
+      console.error(error);
+      res.status(500).json({ msg: 'Error adding user to SendFox.' });
 };
 //route to send the verification code again incase it expires
 const resendVerificationCode = async (req, res) => {
@@ -158,7 +151,7 @@ const login = async (req, res) => {
 
     const token = user.createJWT();
 
-    res.status(StatusCodes.OK).json({ _id: user._id, token });
+    res.status(StatusCodes.OK).json({ _id: user, token });
   } catch (error) {
     console.log(error);
     res.status(StatusCodes.BAD_REQUEST).json({ msg: error.message });
