@@ -11,7 +11,8 @@ const {
   verifyEmail,
   resendVerificationCode,
   tikTokCallback,
-  initiateTikTokOauth
+  initiateTikTokOauth,
+  fetchYouTubeAnalytics
 } = require('../controllers/auth');
 
 router.post('/login', login);
@@ -26,6 +27,7 @@ router.post("/verify/resend", resendVerificationCode);
 // Google OAuth 2.0 Authentication Routes
 router.get('/oauth/google', initiateOauth);
 router.get('/google/callback', googleCallback);
+router.get('/youtube/analytics', fetchYouTubeAnalytics);
 
 //TikTok OAuth 2.0 Authentication Routes
 router.get('/tiktok', initiateTikTokOauth);

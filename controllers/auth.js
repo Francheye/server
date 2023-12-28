@@ -3,6 +3,8 @@ const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
 const jwt = require('jsonwebtoken');
 const oauth2Client = require('../oauth2Client');
+const { google } = require('googleapis');
+const youtubeAnalytics = google.youtubeAnalytics('v2');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../mailer');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -151,7 +153,7 @@ const login = async (req, res) => {
 
     const token = user.createJWT();
 
-    res.status(StatusCodes.OK).json({ _id: user, token });
+    res.status(StatusCodes.OK).json({ user: user, token });
   } catch (error) {
     console.log(error);
     res.status(StatusCodes.BAD_REQUEST).json({ msg: error.message });
@@ -243,66 +245,84 @@ const resetPassword = async (req, res) => {
 };
 
 const initiateOauth = async (req, res) => {
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
+  const id = req.query.id;
+  const state = id;
+  let authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline', // Ensures a refresh token is provided
     scope: [
-      'https://www.googleapis.com/auth/plus.login',
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/yt-analytics.readonly',
+      //'https://www.googleapis.com/auth/youtube.readonly', // Added to access YouTube channel data
+      //'https://www.googleapis.com/auth/userinfo.email'
     ],
+    state: state, // Optional: state parameter for CSRF protection
   });
   res.redirect(authUrl);
 };
 
+
 const googleCallback = async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
 
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+    console.log(tokens)
 
-    // Get user information from Google API
-    const user = await oauth2Client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    // Find or create a user record and update tokens
+    let user = await User.findOneAndUpdate(
+      { _id: state },
+      { googleTokens: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token } },
+      { new: true, upsert: false }
+    );
 
-    const { given_name, family_name, email } = user.payload;
-
-    // Check if the user is already registered
-    const existingUser = await User.findOne({ 'data.email': email });
-
-    if (!existingUser) {
-      // Register the user if not already registered
-      const newUser = await User.create({
-        data: { firstName: given_name, lastName: family_name, email: email },
-      });
-
-      // Create a JWT token for authentication
-      const jwtToken = jwt.sign({ email: email }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_LIFETIME, // Token expiration time
-      });
-
-      res.status(200).json({ user: newUser, token: jwtToken });
-    } else {
-      // User is already registered
-      console.log('User is already registered');
-      // Create a JWT token for authentication
-      const jwtToken = jwt.sign({ email: email }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_LIFETIME, // Token expiration time
-      });
-
-      res.status(200).json({ user: existingUser, token: jwtToken });
-    }
+    // Redirect to analytics route with user's email or ID
+    res.redirect(`/analytics?user=${user._id}`);
   } catch (error) {
-    // Check for the "invalid_grant" error and handle it appropriately
-    if (error.response && error.response.data && error.response.data.error === 'invalid_grant') {
-      res.status(400).json({ error: 'Invalid authorization code or token.' });
-    } else {
-      res.status(500).send('Internal Server Error');
-    }
+    console.error('Error during Google OAuth callback:', error);
+    res.status(500).send('Internal Server Error');
   }
 };
+
+const fetchYouTubeAnalytics = async (req, res) => {
+  const userId = req.query.user;
+
+  try {
+    // Fetch user from the database
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // Set credentials using the stored tokens
+    oauth2Client.setCredentials({
+      access_token: user.googleTokens.accessToken,
+      refresh_token: user.googleTokens.refreshToken,
+    });
+
+    // Define the parameters for the YouTube Analytics API request
+    const analyticsParams = {
+      auth: oauth2Client,
+      ids: 'channel==MINE', // Use 'channel==MINE' to refer to the authenticated user's channel
+      startDate: '2022-01-01', // Adjust dates as needed
+      endDate: new Date().toISOString().split('T')[0], // Today's date
+      metrics: 'views,estimatedMinutesWatched,averageViewDuration,subscribersGained', // Add metrics as needed
+    };
+
+    // Fetch analytics data
+    const response = await youtubeAnalytics.reports.query(analyticsParams);
+    const analyticsData = response.data;
+
+    res.status(200).json({ analyticsData: analyticsData });
+  } catch (error) {
+    console.error('Error fetching YouTube Analytics:', error);
+    if (error.code === 401) {
+      // Handle token expiration and refresh scenario
+      // Refresh the token and retry the analytics request
+    }
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 
 const initiateTikTokOauth = async (req, res) => {
   const userId = req._id
@@ -403,5 +423,6 @@ module.exports = {
   verifyEmail,
   resendVerificationCode,
   tikTokCallback,
-  initiateTikTokOauth
+  initiateTikTokOauth,
+  fetchYouTubeAnalytics
 };

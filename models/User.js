@@ -31,6 +31,11 @@ const PersonalInfoSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
   },
+
+  googleTokens:{
+    accessToken:String,
+    refreshToken:String
+  },
   createdAt: {
     type: Date,
     default: Date.now,
