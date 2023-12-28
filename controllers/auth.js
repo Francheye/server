@@ -106,7 +106,9 @@ const verifyEmail = async (req, res) => {
           }
       });
 
-      res.status(200).json({ msg: 'Account verified successfully.', user: user });
+      const token = user.createJWT();
+
+      res.status(200).json({ token: token, user: user });
   } catch (error) {
   }
       console.error(error);
