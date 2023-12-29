@@ -25,7 +25,7 @@ router.post("/verify/resend", resendVerificationCode);
 // router.get('/banks', getBanks)
 
 // Google OAuth 2.0 Authentication Routes
-router.get('/oauth/google', initiateOauth);
+router.get('/oauth/google/:id', initiateOauth);
 router.get('/google/callback', googleCallback);
 router.get('/youtube/analytics', fetchYouTubeAnalytics);
 

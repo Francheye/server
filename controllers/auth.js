@@ -247,28 +247,35 @@ const resetPassword = async (req, res) => {
 };
 
 const initiateOauth = async (req, res) => {
-  const id = req.query.id;
+  const id = req.params.id;
   const state = id;
   let authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline', // Ensures a refresh token is provided
+    access_type: 'offline',
     scope: [
       'https://www.googleapis.com/auth/yt-analytics.readonly',
-      //'https://www.googleapis.com/auth/youtube.readonly', // Added to access YouTube channel data
-      //'https://www.googleapis.com/auth/userinfo.email'
     ],
-    state: state, // Optional: state parameter for CSRF protection
+    state: state,
   });
+
+  console.log('Generated auth URL:', authUrl); // Log the URL for debugging
+
   res.redirect(authUrl);
 };
 
 
 const googleCallback = async (req, res) => {
   const { code, state } = req.query;
-
+// Check if the state is undefined
+if (!state) {
+  // Handle the error scenario
+  return res.status(400).send('State parameter is missing');
+}
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+
     console.log(tokens)
+    
 
     // Find or create a user record and update tokens
     let user = await User.findOneAndUpdate(
@@ -277,16 +284,21 @@ const googleCallback = async (req, res) => {
       { new: true, upsert: false }
     );
 
+    
+
     // Redirect to analytics route with user's email or ID
-    res.redirect(`/analytics?user=${user._id}`);
+    //fetchYouTubeAnalytics(state)
+
+    //update user object
+    res.redirect(`geralds dashboard page to be returned with the full youtube`);
   } catch (error) {
     console.error('Error during Google OAuth callback:', error);
     res.status(500).send('Internal Server Error');
   }
 };
 
-const fetchYouTubeAnalytics = async (req, res) => {
-  const userId = req.query.user;
+const fetchYouTubeAnalytics = async ( userId) => {
+  
 
   try {
     // Fetch user from the database
