@@ -343,7 +343,7 @@ if (response && response2) {
    
  
    const updateData = {
-     'analytics.youtube.LifetimeTotalViews': firstRow[0],
+     'analytics.youtube.lifeTimeTotalViews': firstRow[0],
      'analytics.youtube.subscribers': firstRow[1],
      'analytics.youtube.thirtyDaysViews': firstRow2[0],
      'analytics.youtube.estimatedMinutesWatched': estimatedHoursWatched, // Now in hours

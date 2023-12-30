@@ -25,8 +25,9 @@ const authenticateUser = require('./middleware/authenticateUser');
 const auth = require('./routes/auth');
 const user = require('./routes/user');
 const campaign = require('./routes/campaign');
+const leaderboard = require('./routes/leaderboard');
 
-//errorhandlers
+//error-handlers
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
@@ -54,6 +55,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/user', user);
 app.use('/api/v1/campaign', campaign)
+app.use('/api/v1/leaderboard', leaderboard)
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
