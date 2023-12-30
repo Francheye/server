@@ -51,10 +51,70 @@ const PersonalInfoSchema = new mongoose.Schema({
   }
 });
 
+// Define Personal Info schema
+const AnalyticSchema = new mongoose.Schema({
+  _id: false,
+
+  youtube:{
+    lifeTimeTotalViews:Number,
+    thirtyDaysViews:Number,
+    avgViews:Number,
+    subscribers:Number,
+    estimatedMinutesWatched:Number,
+    averageViewDuration:Number,
+    likes:Number,
+    shares:Number,
+  
+    accountOne:{
+      lifeTimeTotalViews:Number,
+      thirtyDays:Number,
+      avgThirtyDays:Number,
+      subscribers:Number,
+      estimatedMinutesWatched:Number,
+      averageViewDuration:Number,
+      likes:Number,
+      shares:Number,
+    },
+
+    accountTwo:{
+      lifeTimeTotalViews:Number,
+      thirtyDays:Number,
+      avgThirtyDays:Number,
+      subscribers:Number,
+      estimatedMinutesWatched:Number,
+      averageViewDuration:Number,
+      likes:Number,
+      shares:Number,
+    },
+
+    accountThree:{
+      lifeTimeTotalViews:Number,
+      thirtyDays:Number,
+      avgThirtyDays:Number,
+      subscribers:Number,
+      estimatedMinutesWatched:Number,
+      averageViewDuration:Number,
+      likes:Number,
+      shares:Number,
+    },
+   
+  },
+
+  tikTok:{
+    lifeTimeTotalViews:Number,
+      thirtyDays:Number,
+      avgThirtyDays:Number,
+  }
+});
+
 // Define User schema
 const UserSchema = new mongoose.Schema({
   data: {
     type: PersonalInfoSchema,
+  },
+
+  analytics:{
+     type: AnalyticSchema
   },
 
   type: {
