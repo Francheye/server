@@ -32,10 +32,6 @@ const PersonalInfoSchema = new mongoose.Schema({
     lowercase: true,
   },
 
-  googleTokens:{
-    accessToken:String,
-    refreshToken:String
-  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -108,7 +104,12 @@ const UserSchema = new mongoose.Schema({
 
   tikTokAccessToken:{
     type:String
-  }
+  },
+
+  googleTokens:{
+    accessToken:String,
+    refreshToken:String
+  },
 });
 
 // Define a method for hashing the password
