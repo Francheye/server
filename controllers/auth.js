@@ -286,7 +286,7 @@ if (!state) {
 
 
     // Redirect to analytics route with user's email or ID
-    fetchYouTubeAnalytics(state)
+    await fetchYouTubeAnalytics(state)
 
     //update user object
     res.redirect(`http://localhost:3000/dashboard`);
