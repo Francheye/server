@@ -254,6 +254,7 @@ const initiateOauth = async (req, res) => {
     scope: [
       'https://www.googleapis.com/auth/yt-analytics.readonly',
       'https://www.googleapis.com/auth/userinfo.profile',
+      
     ],
     state: state,
   });
@@ -273,7 +274,9 @@ if (!state) {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
     
+    //const channelId = await fetchYouTubeChannelId(tokens);
 
+   // console.log('ChanneeeeeeelllllIdIs' + channelId)
     // Find or create a user record and update tokens
     let user = await User.findOneAndUpdate(
       { _id: state },
@@ -286,10 +289,10 @@ if (!state) {
     fetchYouTubeAnalytics(state)
 
     //update user object
-    res.redirect(`geralds dashboard page to be returned with the full youtube`);
+    res.redirect(`http://localhost:3000/dashboard`);
   } catch (error) {
     console.error('Error during Google OAuth callback:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(400).send('Analytics Failed');
   }
 };
 
@@ -405,7 +408,6 @@ const tikTokCallback = async (req, res) => {
   }
 }
 
-
 //Aux functions
 
 // Function to get date string 30 days ago from today
@@ -414,6 +416,35 @@ function getThirtyDaysAgoDate() {
     today.setDate(today.getDate() - 30);
     return today.toISOString().split('T')[0];
   }
+
+
+async function fetchYouTubeChannelId(tokens) {
+  try {
+    // Initialize the YouTube API client
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: tokens.access_token // Set the access token
+    });
+
+    // Fetch the channel details
+    const response = await youtube.channels.list({
+      part: 'id',
+      mine: true // Indicates that we want the authenticated user's channel
+    });
+
+    // Check if the response contains channel information
+    if (response.data.items && response.data.items.length > 0) {
+      // Extract the channel ID
+      const channelId = response.data.items[0].id;
+      return channelId;
+    } else {
+      throw new Error('No channel found for the authenticated user.');
+    }
+  } catch (error) {
+    console.error('Error in fetchYouTubeChannelId:', error);
+    throw error;
+  }
+}
 
 
 
