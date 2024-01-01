@@ -5,10 +5,12 @@ const jwt = require('jsonwebtoken');
 const oauth2Client = require('../oauth2Client');
 const { google } = require('googleapis');
 const youtubeAnalytics = google.youtubeAnalytics('v2');
+const youtube = google.youtube('v3');
+const axios = require('axios'); 
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../mailer');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-//const crypto = require('crypto')
+
 
 // EMAIL AND PASSWORD REGISTER AND LOGIN
 const registerUser = async (req, res) => {
@@ -71,8 +73,6 @@ function generateVerificationCode() {
   }
   return code;
 }
-
-const axios = require('axios'); // Ensure axios is required at the top of your file
 
 const verifyEmail = async (req, res) => {
   const { email, verificationCode } = req.body;
@@ -273,6 +273,7 @@ if (!state) {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+
     
     //const channelId = await fetchYouTubeChannelId(tokens);
 
@@ -310,64 +311,27 @@ const fetchYouTubeAnalytics = async ( userId) => {
       refresh_token: user.googleTokens.refreshToken,
     });
 
-    // Define the parameters for the YouTube Analytics API request
-    const analyticsParams = {
-      auth: oauth2Client,
-      ids: 'channel==MINE', // Use 'channel==MINE' to refer to the authenticated user's channel
-      startDate: '2000-01-01', // Adjust dates as needed
-      endDate: new Date().toISOString().split('T')[0], // Today's date
-      metrics: 'views,subscribersGained,estimatedMinutesWatched,averageViewDuration,likes,shares', // Add metrics as needed
-    };
+   // Define a helper function to refresh the access token
+    const refreshToken = async () => {
+      const newTokens = await oauth2Client.refreshAccessToken();
+      oauth2Client.setCredentials(newTokens.credentials);
+    
+        user.googleTokens.accessToken = newTokens.credentials.access_token
+        
+        await user.save()
+    }
 
-    const analyticsParams2 = {
-      auth: oauth2Client,
-      ids: 'channel==MINE', // Use 'channel==MINE' to refer to the authenticated user's channel
-      startDate: getThirtyDaysAgoDate(), // 30 days ago
-      endDate: new Date().toISOString().split('T')[0], // Today's date
-      metrics: 'views', // Add metrics as needed
-    };
-
-    // Fetch analytics data
-    const response = await youtubeAnalytics.reports.query(analyticsParams);
-    const response2 = await youtubeAnalytics.reports.query(analyticsParams2);
-    const analyticsData = response.data;
-    const analyticsData2 = response2.data;
-
-    // Check if there are any rows in the response
-if (response && response2) {
-    // Access the first row
-   
-    const firstRow = response.data.rows[0];
-    const firstRow2 = response2.data.rows[0]
-  
-   // Convert minutes to hours and round to two decimal places
-   const estimatedHoursWatched = (firstRow[2] / 60).toFixed(2);
-   const averageHoursDuration = (firstRow[3] / 60).toFixed(2);
-   
- 
-   const updateData = {
-     'analytics.youtube.lifeTimeTotalViews': firstRow[0],
-     'analytics.youtube.subscribers': firstRow[1],
-     'analytics.youtube.thirtyDaysViews': firstRow2[0],
-     'analytics.youtube.estimatedMinutesWatched': estimatedHoursWatched, // Now in hours
-     'analytics.youtube.averageViewDuration': averageHoursDuration, // Now in hours
-     'analytics.youtube.likes': firstRow[4],
-     'analytics.youtube.shares': firstRow[5],
-     'analytics.youtube.avgViews': firstRow2[0] / 30
-   };
-  const newUser = await User.findOneAndUpdate({ _id: userId }, { $set: updateData });
- // console.log(newUser)
-   // console.log(`Lifetime Views: ${LifetimeViews}, Total Subscribers: ${TotalSubscribers}, 30 Days Views: ${thirtyDaysViews}, Average 30 Days Views: ${avgViews}`);
-  } else {
-    console.log('No data available');
-  }
-
+    //Data Minining
+   await mineYoutubeData(oauth2Client, userId)
+    
    
   } catch (error) {
     console.error('Error fetching YouTube Analytics:', error);
     if (error.code === 401) {
       // Handle token expiration and refresh scenario
       // Refresh the token and retry the analytics request
+      await refreshToken();
+      await mineYoutubeData(oauth2Client, userId)
     }
 
   }
@@ -446,6 +410,58 @@ async function fetchYouTubeChannelId(tokens) {
   }
 }
 
+async function mineYoutubeData(oauth2Client, userId) {
+    // Define the parameters for the YouTube Analytics API request
+    const analyticsParams = {
+        auth: oauth2Client,
+        ids: 'channel==MINE', // Use 'channel==MINE' to refer to the authenticated user's channel
+        startDate: '2000-01-01', // Adjust dates as needed
+        endDate: new Date().toISOString().split('T')[0], // Today's date
+        metrics: 'views,subscribersGained,estimatedMinutesWatched,averageViewDuration,likes,shares', // Add metrics as needed
+      };
+  
+      const analyticsParams2 = {
+        auth: oauth2Client,
+        ids: 'channel==MINE', // Use 'channel==MINE' to refer to the authenticated user's channel
+        startDate: getThirtyDaysAgoDate(), // 30 days ago
+        endDate: new Date().toISOString().split('T')[0], // Today's date
+        metrics: 'views', // Add metrics as needed
+      };
+  
+      // Fetch analytics data
+      const response = await youtubeAnalytics.reports.query(analyticsParams);
+      const response2 = await youtubeAnalytics.reports.query(analyticsParams2);
+      
+      // Check if there are any rows in the response
+  if (response && response2) {
+      // Access the first row
+     
+      const firstRow = response.data.rows[0];
+      const firstRow2 = response2.data.rows[0]
+    
+     // Convert minutes to hours and round to two decimal places
+     const estimatedHoursWatched = (firstRow[2] / 60).toFixed(2);
+     const averageHoursDuration = (firstRow[3] / 60).toFixed(2);
+     
+   
+     const updateData = {
+       'analytics.youtube.lifeTimeTotalViews': firstRow[0],
+       'analytics.youtube.subscribers': firstRow[1],
+       'analytics.youtube.thirtyDaysViews': firstRow2[0],
+       'analytics.youtube.estimatedMinutesWatched': estimatedHoursWatched, // Now in hours
+       'analytics.youtube.averageViewDuration': averageHoursDuration, // Now in hours
+       'analytics.youtube.likes': firstRow[4],
+       'analytics.youtube.shares': firstRow[5],
+       'analytics.youtube.avgViews': firstRow2[0] / 30
+     };
+    const newUser = await User.findOneAndUpdate({ _id: userId }, { $set: updateData });
+   return newUser
+     // console.log(`Lifetime Views: ${LifetimeViews}, Total Subscribers: ${TotalSubscribers}, 30 Days Views: ${thirtyDaysViews}, Average 30 Days Views: ${avgViews}`);
+    } else {
+      console.log('No data available');
+    }
+  
+}
 
 
 module.exports = {

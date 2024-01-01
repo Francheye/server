@@ -17,6 +17,7 @@ const getAllCreatorsYoutube = async (req, res) => {
       if (req.query.region) matchQuery['tags.region'] = req.query.region;
       if (req.query.niche) matchQuery['tags.niche'] = { $in: [req.query.niche] };
       if (req.query.partner) matchQuery['tags.partner'] = { $in: [req.query.partner] };
+
   
       const creators = await User.find(matchQuery)
         .sort(sortOptions)

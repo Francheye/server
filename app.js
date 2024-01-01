@@ -1,6 +1,7 @@
 require('dotenv').config();
 require('express-async-errors');
 require('./oauth2Client');
+const scheduledTask = require('./jobs/youtubeAnalytics');
 
 //extra security packages
 const helmet = require('helmet');

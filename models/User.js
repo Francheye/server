@@ -124,9 +124,18 @@ const UserSchema = new mongoose.Schema({
   },
 
   tags: {
-    region: String,
-    niche: [String],
-    partner: [String],
+    region: {
+      type: String,
+      lowercase: true, // Convert region to lowercase
+    },
+    niche: {
+      type: [String],
+      set: niches => niches.map(niche => niche.toLowerCase()), // Convert each niche to lowercase
+    },
+    partner: {
+      type: [String],
+      set: partners => partners.map(partner => partner.toLowerCase()), // Convert each partner to lowercase
+    },
     isOnboarded: {
       type: Boolean,
       default: false,
