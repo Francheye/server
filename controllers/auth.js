@@ -247,8 +247,7 @@ const resetPassword = async (req, res) => {
 };
 
 const initiateOauth = async (req, res) => {
-  const id = req.params.id;
-  const state = id;
+  const state = req.params.id;
   let authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: [
@@ -311,16 +310,6 @@ const fetchYouTubeAnalytics = async ( userId) => {
       refresh_token: user.googleTokens.refreshToken,
     });
 
-   // Define a helper function to refresh the access token
-    const refreshToken = async () => {
-      const newTokens = await oauth2Client.refreshAccessToken();
-      oauth2Client.setCredentials(newTokens.credentials);
-    
-        user.googleTokens.accessToken = newTokens.credentials.access_token
-        
-        await user.save()
-    }
-
     //Data Minining
    await mineYoutubeData(oauth2Client, userId)
     
@@ -330,7 +319,7 @@ const fetchYouTubeAnalytics = async ( userId) => {
     if (error.code === 401) {
       // Handle token expiration and refresh scenario
       // Refresh the token and retry the analytics request
-      await refreshToken();
+      await refreshToken(oauth2Client, userId);
       await mineYoutubeData(oauth2Client, userId)
     }
 
@@ -338,9 +327,8 @@ const fetchYouTubeAnalytics = async ( userId) => {
 };
 
 const initiateTikTokOauth = async (req, res) => {
-  const userId = req._id
+  const state = req._id
 //const nonce = generateNonce(); // Generate a random string for security
-  const state = userId; // Implement encryption/encoding
 
   const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.TIKTOK_REDIRECT_URI)}&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
   res.redirect(tikTokAuthUrl);
@@ -461,6 +449,16 @@ async function mineYoutubeData(oauth2Client, userId) {
       console.log('No data available');
     }
   
+}
+
+// Define a helper function to refresh the access token
+const refreshToken = async () => {
+  const newTokens = await oauth2Client.refreshAccessToken();
+  oauth2Client.setCredentials(newTokens.credentials);
+
+    user.googleTokens.accessToken = newTokens.credentials.access_token
+    
+    await user.save()
 }
 
 
