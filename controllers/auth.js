@@ -155,7 +155,7 @@ const login = async (req, res) => {
 
     const token = user.createJWT();
 
-    res.status(StatusCodes.OK).json({ user: user, token });
+    res.status(StatusCodes.OK).json({ user: user, token: token });
   } catch (error) {
     console.log(error);
     res.status(StatusCodes.BAD_REQUEST).json({ msg: error.message });

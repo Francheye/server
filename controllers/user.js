@@ -38,13 +38,14 @@ const getUser = async (req, res) => {
   } = req;
 
   const user = await User.findOne({ _id: userId }).select('-data.password');
+  const token = user.createJWT();
 
   if (!user) {
     res.status(StatusCodes.NOT_FOUND).json({ msg: 'User does not exist' });
   }
 
   res.status(StatusCodes.OK).json({
-    userData: user,
+    user: user, token:token
   });
 };
 
