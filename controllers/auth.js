@@ -289,7 +289,7 @@ if (!state) {
     await fetchYouTubeAnalytics(state)
 
     //update user object
-    res.redirect(`http://localhost:3000/dashboard`);
+    res.redirect(`https://francheye.com/dashboard`);
   } catch (error) {
     console.error('Error during Google OAuth callback:', error);
     res.status(400).send('Analytics Failed');
