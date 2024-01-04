@@ -327,7 +327,7 @@ const fetchYouTubeAnalytics = async ( userId) => {
 };
 
 const initiateTikTokOauth = async (req, res) => {
-  const state = req._id
+  const state = req.params.id;
 //const nonce = generateNonce(); // Generate a random string for security
 
   const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.TIKTOK_REDIRECT_URI)}&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);

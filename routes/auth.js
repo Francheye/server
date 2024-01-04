@@ -30,7 +30,7 @@ router.get('/google/callback', googleCallback);
 router.get('/youtube/analytics', fetchYouTubeAnalytics);
 
 //TikTok OAuth 2.0 Authentication Routes
-router.get('/tiktok', initiateTikTokOauth);
+router.get('/tiktok/:id', initiateTikTokOauth);
 router.get('/tiktok/callback', tikTokCallback);
 
 // Add other OAuth 2.0 routes if needed
