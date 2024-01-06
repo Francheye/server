@@ -253,6 +253,7 @@ const initiateOauth = async (req, res) => {
     scope: [
       'https://www.googleapis.com/auth/yt-analytics.readonly',
       'https://www.googleapis.com/auth/userinfo.profile',
+      //'https://www.googleapis.com/auth/youtube.readonly'
       
     ],
     state: state,
@@ -330,8 +331,8 @@ const initiateTikTokOauth = async (req, res) => {
   const state = req.params.id;
 //const nonce = generateNonce(); // Generate a random string for security
 
-  const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.TIKTOK_REDIRECT_URI)}&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
-  res.redirect(tikTokAuthUrl);
+  const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri='https://successful-pink-tutu.cyclic.app/api/v1/auth/tiktok/callback'&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
+
 }
 
 const tikTokCallback = async (req, res) => {
@@ -343,7 +344,7 @@ const tikTokCallback = async (req, res) => {
       //const [userId, nonce] = decryptOrDecode(state).split(':'); // Implement decryption/decoding
 
     const tokenResponse = await axios.post('https://open-api.tiktok.com/oauth/access_token/', {
-      client_key: process.env.TIKTOK_CLIENT_ID,
+      client_key: process.env.TIKTOK_CLIENT_KEY,
       client_secret: process.env.TIKTOK_CLIENT_SECRET,
       code: code,
       grant_type: 'authorization_code'
