@@ -253,7 +253,7 @@ const initiateOauth = async (req, res) => {
     scope: [
       'https://www.googleapis.com/auth/yt-analytics.readonly',
       'https://www.googleapis.com/auth/userinfo.profile',
-      //'https://www.googleapis.com/auth/youtube.readonly'
+      'https://www.googleapis.com/auth/youtube.readonly'
       
     ],
     state: state,
@@ -330,8 +330,11 @@ const fetchYouTubeAnalytics = async ( userId) => {
 const initiateTikTokOauth = async (req, res) => {
   const state = req.params.id;
 //const nonce = generateNonce(); // Generate a random string for security
+const redirectUri = 'https://successful-pink-tutu.cyclic.app/api/v1/auth/tiktok/callback';
+const encodedRedirectUri = encodeURIComponent(redirectUri);
 
-  const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri='https://successful-pink-tutu.cyclic.app/api/v1/auth/tiktok/callback'&state=${state}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
+
+  const tikTokAuthUrl = `https://open-api.tiktok.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_ID}&response_type=code&redirect_uri=${encodedRedirectUri}&scope=user.info.basic,video.list`;res.redirect(tikTokAuthUrl);
 
 }
 
@@ -431,6 +434,7 @@ async function mineYoutubeData(oauth2Client, userId) {
      // Convert minutes to hours and round to two decimal places
      const estimatedHoursWatched = (firstRow[2] / 60).toFixed(2);
      const averageHoursDuration = (firstRow[3] / 60).toFixed(2);
+     const avgViews = (firstRow2[0] / 30).toFixed(2)
      
    
      const updateData = {
@@ -441,7 +445,7 @@ async function mineYoutubeData(oauth2Client, userId) {
        'analytics.youtube.averageViewDuration': averageHoursDuration, // Now in hours
        'analytics.youtube.likes': firstRow[4],
        'analytics.youtube.shares': firstRow[5],
-       'analytics.youtube.avgViews': firstRow2[0] / 30
+       'analytics.youtube.avgViews': avgViews
      };
     const newUser = await User.findOneAndUpdate({ _id: userId }, { $set: updateData });
    return newUser
